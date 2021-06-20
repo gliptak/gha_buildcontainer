@@ -1,0 +1,26 @@
+name: failing
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+env:
+  BUILD_IMAGE: hello-world
+
+jobs:
+
+  job1:
+    runs-on: ubuntu-20.04
+    container:
+      image: ${{ env.BUILD_IMAGE }}
+    steps:
+      - run: echo job1
+
+  job2:
+    runs-on: ubuntu-20.04
+    container:
+      image: ${{ env.BUILD_IMAGE }}
+    steps:
+      - run: echo job1
