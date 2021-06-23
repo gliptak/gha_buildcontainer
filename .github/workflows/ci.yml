@@ -1,0 +1,55 @@
+name: ci
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+env:
+  BUILD_IMAGE: build_image:latest
+  BUILD_IMAGE_TAR: build_image.tar
+
+jobs:
+
+  build_image:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - run: |
+          docker build -t ${{ env.BUILD_IMAGE }} build/
+          docker save ${{ env.BUILD_IMAGE }} > /tmp/${{ env.BUILD_IMAGE_TAR }}
+      - uses: actions/upload-artifact@v2
+        with:
+          name: ${{ env.BUILD_IMAGE_TAR }}
+          path: /tmp/${{ env.BUILD_IMAGE_TAR }}
+
+  job1:
+    needs: build_image
+    runs-on: ubuntu-20.04
+    steps:
+      - run: |
+          sudo systemctl restart docker
+      - uses: actions/download-artifact@v2
+        with:
+          name: ${{ env.BUILD_IMAGE_TAR }}
+          path: /tmp
+      - run: |
+          docker load --input /tmp/${{ env.BUILD_IMAGE_TAR }}
+      - run: |
+          docker run --rm ${{ env.BUILD_IMAGE }} echo job1
+
+  job2:
+    needs: build_image
+    runs-on: ubuntu-20.04
+    steps:
+      - run: |
+          sudo systemctl restart docker
+      - uses: actions/download-artifact@v2
+        with:
+          name: ${{ env.BUILD_IMAGE_TAR }}
+          path: /tmp
+      - run: |
+          docker load --input /tmp/${{ env.BUILD_IMAGE_TAR }}
+      - run: |
+          docker run --rm ${{ env.BUILD_IMAGE }} echo job2
